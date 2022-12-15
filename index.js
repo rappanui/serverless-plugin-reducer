@@ -29,7 +29,7 @@ module.exports = class ServerlessPluginReducer {
 			const { servicePath } = serverless.config;
 
 			if (!functionObject.handler) return null; // image case
-			if (functionObject.reducer === false) return null;
+			if (functionObject.reducer === false) return [];
 
 			const patterns = [];
 			for (const excludePattern of this.getExcludes(funcPackageConfig.exclude, true)) {
