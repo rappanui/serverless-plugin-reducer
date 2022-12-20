@@ -25,9 +25,16 @@ module.exports = class ServerlessPluginReducer {
 				originalResolveFilePathsFunction.call(this, functionName);
 			}
 
+			const lambdaIgnoreDeps = []
+			lambdaIgnoreDeps.push(['aws-sdk'])
+			for (const dependency of functionObject.reducer.dependencies) {
+				lambdaIgnoreDeps.push(dependency);
+			}
+			console.log(`--- IGNORE DEPS ---`, lambdaIgnoreDeps)
+			
 			const funcPackageConfig = functionObject.package || {};
 			const { servicePath } = serverless.config;
-
+			
 			if (!functionObject.handler) return null; // image case
 
 			const patterns = [];
@@ -41,13 +48,15 @@ module.exports = class ServerlessPluginReducer {
 					...(funcPackageConfig.include || []), ...(funcPackageConfig.patterns || [])
 				])
 			);
+			
+			console.log(`--- PATTERNS EXCLUDE DEPS ---`, patterns)
 
 			const [modulePaths, includeModulePaths] = await Promise.all([
 				// Get all lambda dependencies resolved by walking require paths
 				resolveLambdaModulePaths(servicePath, functionObject, {
 					...options,
 					ServerlessError
-				}),
+				}, lambdaIgnoreDeps),
 				// Get all files mentioned specifically in 'include' option
 				globby(patterns, {
 					cwd: this.serverless.config.servicePath,
