@@ -24,15 +24,15 @@ module.exports = class ServerlessPluginReducer {
 			if (!runtime.startsWith("nodejs")) {
 				originalResolveFilePathsFunction.call(this, functionName);
 			}
+			console.log(`--- PROCESSING LAMBDA ${functionName} ---`)
 
-			const lambdaIgnoreDeps = []
+			let lambdaIgnoreDeps = []
 			if (functionObject.reducer) {
-
-				lambdaIgnoreDeps.push(['aws-sdk'])
 				for (const dependency of functionObject.reducer.dependencies) {
 					lambdaIgnoreDeps.push(dependency);
 				}
-				console.log(`--- IGNORE DEPS ---`, lambdaIgnoreDeps)
+				lambdaIgnoreDeps = lambdaIgnoreDeps.flat()
+				console.log(`--- IGNORE DEPS FROM ${functionName} ---`, lambdaIgnoreDeps)
 			}
 
 			const funcPackageConfig = functionObject.package || {};
