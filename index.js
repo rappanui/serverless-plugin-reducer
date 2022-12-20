@@ -1,11 +1,11 @@
 "use strict";
 
-const optionalChaining         = require("es5-ext/optional-chaining")
-    , { join, resolve }        = require("path")
-    , globby                   = require("globby")
-    , multimatch               = require("multimatch")
-    , getDependencies          = require("./lib/private/get-dependencies")
-    , resolveLambdaModulePaths = require("./lib/private/resolve-lambda-module-paths");
+const optionalChaining = require("es5-ext/optional-chaining")
+	, { join, resolve } = require("path")
+	, globby = require("globby")
+	, multimatch = require("multimatch")
+	, getDependencies = require("./lib/private/get-dependencies")
+	, resolveLambdaModulePaths = require("./lib/private/resolve-lambda-module-paths");
 
 module.exports = class ServerlessPluginReducer {
 	constructor(serverless) {
@@ -26,21 +26,24 @@ module.exports = class ServerlessPluginReducer {
 			}
 
 			const lambdaIgnoreDeps = []
-			lambdaIgnoreDeps.push(['aws-sdk'])
-			for (const dependency of functionObject.reducer.dependencies) {
-				lambdaIgnoreDeps.push(dependency);
+			if (functionObject.reducer) {
+
+				lambdaIgnoreDeps.push(['aws-sdk'])
+				for (const dependency of functionObject.reducer.dependencies) {
+					lambdaIgnoreDeps.push(dependency);
+				}
+				console.log(`--- IGNORE DEPS ---`, lambdaIgnoreDeps)
 			}
-			console.log(`--- IGNORE DEPS ---`, lambdaIgnoreDeps)
-			
+
 			const funcPackageConfig = functionObject.package || {};
 			const { servicePath } = serverless.config;
-			
+
 			if (!functionObject.handler) return null; // image case
 
 			const patterns = [];
 			for (const excludePattern of this.getExcludes(funcPackageConfig.exclude, true)) {
 				patterns.push(
-					excludePattern[0] === "!" ? excludePattern.slice(1) : `!${ excludePattern }`
+					excludePattern[0] === "!" ? excludePattern.slice(1) : `!${excludePattern}`
 				);
 			}
 			patterns.push(
@@ -48,7 +51,7 @@ module.exports = class ServerlessPluginReducer {
 					...(funcPackageConfig.include || []), ...(funcPackageConfig.patterns || [])
 				])
 			);
-			
+
 			console.log(`--- PATTERNS EXCLUDE DEPS ---`, patterns)
 
 			const [modulePaths, includeModulePaths] = await Promise.all([
